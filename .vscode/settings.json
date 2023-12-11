@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "serialport.h": "c",
+        "ioctl.h": "c"
+    }
+}
