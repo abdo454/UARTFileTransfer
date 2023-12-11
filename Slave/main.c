@@ -22,7 +22,11 @@
 volatile bool quitApp = false;
 
 extern uint8_t uart_buf[MAX_UART_FRAME_SIZE];
-extern BINARY_FILE_INFO binaryinfo;
+BINARY_FILE_INFO binaryinfo;
+
+Version BL_Version = {
+    .major = BL_MAJOR_VERSION,
+    .minor = BL_MINOR_VERSION};
 
 int main(int argc, char *argv[])
 {
@@ -63,4 +67,30 @@ int main(int argc, char *argv[])
         }
     }
     return EXIT_SUCCESS;
+}
+
+void processMasterCommand(uint8_t cmd_type)
+{
+
+    switch (cmd_type)
+    {
+    case UART_CMD_GET_BL_VERSION:
+        uint8_t BL_version = encode_bootloader_version(BL_MAJOR_VERSION, BL_MINOR_VERSION);
+        write_respond_to_Master(MY_ID, BL_version); //
+        break;
+    case UART_CMD_GET_APP_VERSION:
+        //
+        break;
+    case UART_CMD_ENTER_BOOTLOADER:
+        write_respond_to_Master(MY_ID, UART_RESPOND_ACK); // I'm already in bootloader mode
+        break;
+    case UART_CMD_CHECK_SPACE:
+        UART_RSPONSE resp = UART_RESPOND_ACK;
+        if (check_space_by_writing_temp_file((size_t)binaryinfo.size) <= 0)
+            resp = UART_RESPOND_NACK;
+        write_respond_to_Master(MY_ID, resp);
+        break;
+    default:
+        break;
+    }
 }

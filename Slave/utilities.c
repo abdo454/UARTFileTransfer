@@ -15,35 +15,7 @@
 
 #define TEMP_FILE_PATH "/tmp/test_space.tmp"
 
-BINARY_FILE_INFO binaryinfo;
-typedef enum
-{
-    UART_CMD_GET_BL_VERSION,     // Get bootloader version
-    UART_CMD_GET_APP_VERSION,    // Get application version
-    UART_CMD_ENTER_BOOTLOADER,   // Enter bootloader mode
-    UART_CMD_CHECK_SPACE,        // Check available space
-    UART_CMD_VERIFY_FILE_PARAMS, // Verify file parameters (signature, CRC, size, MD5, type)
-    UART_CMD_FLASH_APP,          // Write application to flash memory
-    UART_CMD_END_SESSION,        // Close the session
-} COMMAND_CASES;
-
-void processMasterCommand(uint8_t cmd_type)
-{
-
-    switch (cmd_type)
-    {
-    case UART_CMD_GET_BL_VERSION:
-        break;
-    case UART_CMD_ENTER_BOOTLOADER:
-        write_respond_to_Master(MY_ID, UART_RESPOND_ACK); // I'm already in bootloader mode
-        break;
-    case UART_CMD_CHECK_SPACE:
-        write_respond_to_Master(MY_ID, UART_RESPOND_ACK); // I'm already in bootloader mode
-        break;
-    default:
-        break;
-    }
-}
+extern BINARY_FILE_INFO binaryinfo;
 
 int check_space_by_writing_temp_file(size_t requiredSize)
 {
@@ -63,7 +35,7 @@ int check_space_by_writing_temp_file(size_t requiredSize)
         size_t toWrite = (requiredSize - writtenSize) < sizeof(buffer) ? (requiredSize - writtenSize) : sizeof(buffer);
         if (fwrite(buffer, 1, toWrite, tempFile) != toWrite)
         {
-            success = 0; // Not enough space or an error occurred
+            success = -2; // Not enough space or an error occurred
             break;
         }
         writtenSize += toWrite;
@@ -73,4 +45,14 @@ int check_space_by_writing_temp_file(size_t requiredSize)
     remove(TEMP_FILE_PATH); // Clean up
 
     return success;
+}
+
+uint8_t encode_bootloader_version(uint8_t major, uint8_t minor)
+{
+    // Ensure that major and minor versions fit into 4 bits
+    major &= 0x0F; // Mask major to fit in 4 bits
+    minor &= 0x0F; // Mask minor to fit in 4 bits
+
+    // Combine major and minor into one byte (major in high 4 bits, minor in low 4 bits)
+    return (major << 4) | minor;
 }

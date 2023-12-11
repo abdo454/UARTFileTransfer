@@ -20,8 +20,9 @@ extern "C"
 {
 #endif
 
-#define MY_ID 0x01 // TOSET
-
+#define MY_ID 0x01         // TOSET
+#define BL_MAJOR_VERSION 1 // Bootloader major version
+#define BL_MINOR_VERSION 0 // Bootloader minor version
 #ifdef __cplusplus
 }
 #endif
