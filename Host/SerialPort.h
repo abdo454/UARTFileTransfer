@@ -137,9 +137,6 @@ HANDLE hSerial;
 // For setting serial port timeouts
 COMMTIMEOUTS timeouts;
 #endif
-#if defined(__linux__) || defined(__APPLE__)
-int serial_fd;
-#endif
 
 // Constructor
 void timeOut();

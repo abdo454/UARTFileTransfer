@@ -3,6 +3,47 @@
 #include "log.h"
 #include "checksum.h"
 uint8_t uart_buf[MAX_UART_FRAME_SIZE];
+extern int serial_fd;
+
+// Function to handle RS-485 transmission enable
+static void rs485_transmission_enable()
+{
+#ifdef RS_485_ENABLE
+    gpio__RS485_set();
+#endif
+}
+
+// Function to handle RS-485 transmission disable
+static void rs485_transmission_disable()
+{
+#ifdef RS_485_ENABLE
+    gpio__RS485_clear();
+#endif
+}
+
+
+int write_respond_to_Master(uint8_t my_ID, UART_RSPONSE state)
+{
+    rs485_transmission_enable();
+
+    UARTFrame frame = {
+        .sof_low = UART_SOF_L,
+        .sof_high = UART_SOF_H,
+        .id = my_ID,
+        .type = UART_DATA_FRAME,
+        .len = 0x01,
+        .data = state,
+        .eof = UART_EOF_H};
+    size_t len = sizeof(frame.id) + sizeof(frame.type) + sizeof(frame.len) + sizeof(frame.data);
+    frame.crc = crc_32(&frame.id, len);
+    writeBytes((uint8_t *)&frame, sizeof(frame));
+    usleep(750);
+    tcdrain(serial_fd);
+
+    rs485_transmission_disable();
+    return 0;
+}
+
 typedef enum
 {
     FRAME_RECEIVE_SOF_LOW_BYTE = 0, // Start of Frame - Low Byte

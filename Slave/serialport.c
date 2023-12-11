@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <string.h>
 
-static int serial_fd;
+int serial_fd;
 
 //_____________________________________
 // ::: Constructors and destructors :::

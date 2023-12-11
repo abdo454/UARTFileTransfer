@@ -13,16 +13,17 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-
 #include "serialport_layer.h"
+#include "utilities.h"
 #include "log.h"
+#include "main.h"
 #define TAG "main"
 
 volatile bool quitApp = false;
-void processMasterCommand(uint8_t cmd_type) {}
 
 extern uint8_t uart_buf[MAX_UART_FRAME_SIZE];
-#define MY_ID 0x01
+extern BINARY_FILE_INFO binaryinfo;
+
 int main(int argc, char *argv[])
 {
     /* 1. Open Serial Port */
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
         if ((ret = tryGetResquestFromMaster(MY_ID)) <= 0)
             continue;
         // watchdog reset
+
         UARTFrame *frame = (UARTFrame *)uart_buf;
         switch (frame->type)
         {
@@ -50,6 +52,10 @@ int main(int argc, char *argv[])
             processMasterCommand(frame->data);
             break;
         case UART_HEADER_FRAME:
+            BINARY_FILE_INFO *binaryinfo_ptr = (BINARY_FILE_INFO *)&frame->data;
+            binaryinfo.crc32 = binaryinfo_ptr->crc32;
+            binaryinfo.size = binaryinfo_ptr->size;
+            write_respond_to_Master(MY_ID, UART_RESPOND_ACK);
             break;
         case UART_DATA_FRAME:
         default:
