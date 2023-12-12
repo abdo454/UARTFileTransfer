@@ -7,6 +7,9 @@
         "log.h": "c",
         "elf.h": "c",
         "utilities.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "stdint.h": "c",
+        "stdbool.h": "c",
+        "checksum.h": "c"
     }
 }

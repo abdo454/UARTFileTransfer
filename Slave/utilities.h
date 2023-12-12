@@ -30,6 +30,13 @@ extern "C"
         uint32_t crc32;
         uint32_t size;
     } __attribute__((packed)) BINARY_FILE_INFO;
+
+    typedef struct
+    {
+        uint8_t ChLen;              //  CHUNK_MAX_PLD_LENGTH_XXXX indicator
+        uint16_t ChunkIdx;          // Chunk index
+        uint8_t ChunkPayload[1024]; // Chunk data payload
+    } __attribute__((packed)) UARTChunk;
     typedef enum
     {
         UART_CMD_GET_BL_VERSION,     // Get bootloader version
@@ -47,7 +54,16 @@ extern "C"
 
     void processMasterCommand(uint8_t cmd_type);
     uint8_t encode_bootloader_version(uint8_t major, uint8_t minor);
+    // Funcation takes a pointer to start of chunk in frame and chunk length
+    int StoreDataIntoFile(uint8_t *ChunkStartPtr, uint16_t ChunkLength);
 
+    uint32_t decode_chunk_payload_max_size(uint8_t ChLen);
+    uint8_t encode_chunk_payload_max_size(uint32_t PLD_LENGTH_XXXX);
+    // Function to open a file, calculate its CRC32 and length
+    int calculate_file_crc_and_length(const char *filename, uint32_t *crc, uint32_t *length);
+
+    // function that reads a binary file and stores its contents in a buffer
+    char *read_binary_file(const char *filename, size_t *size);
 #ifdef __cplusplus
 }
 #endif

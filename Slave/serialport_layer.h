@@ -16,11 +16,10 @@
 extern "C"
 {
 #endif
-
 #include "serialport.h"
 #include "stdint.h"
 #define UART_TIMEOUT_MILLISECONDS 100
-#define MAX_UART_DATA_PAYLOAD_SIZE 512                                               /* max count of data in the frame that master will send */
+#define MAX_UART_DATA_PAYLOAD_SIZE (1024 + 3)                                        /* max count of data in the frame that master will send ("1024" in case CHUNK_MAX_PLD_LENGTH_1024B , "3" = UARTChunk:[uint8_t ChLen+uint16_t ChunkIdx]; */
 #define UART_FRAME_OVERHEAD_BYTES 11                                                 /* including sof_l,sof_h,id,type,length,crc32,eof*/
 #define MAX_UART_FRAME_SIZE (MAX_UART_DATA_PAYLOAD_SIZE + UART_FRAME_OVERHEAD_BYTES) /*total maximum size of a UART frame */
 
@@ -69,7 +68,11 @@ extern "C"
         return openDevice(Device, Bauds);
     }
     int tryGetResquestFromMaster(uint8_t my_ID);
-    int write_respond_to_Master(uint8_t my_ID, UART_RSPONSE state);
+    int tryGetResquestFromSlave(uint8_t Slave_ID);
+
+    int Write_Command_to_Slave(uint8_t Slave_ID, uint8_t cmd);
+    int Write_Info_to_Slave(uint8_t Slave_ID, uint8_t InfoType, uint8_t *data, uint16_t length);
+    int Write_Info_to_Master(uint8_t Slave_ID, uint8_t data);
 #ifdef __cplusplus
 }
 #endif

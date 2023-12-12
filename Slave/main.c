@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     /* 2. Set WatchDog timer */
 
     /* 3. Start While loop */
+    LOG_INFO("Start Listening to Master Requests");
     while (!quitApp)
     {
         // check watchdog timout
@@ -50,6 +51,7 @@ int main(int argc, char *argv[])
         // watchdog reset
 
         UARTFrame *frame = (UARTFrame *)uart_buf;
+        printf("frame type %02x\n", frame->type);
         switch (frame->type)
         {
         case UART_CMD_FRAME:
@@ -59,9 +61,13 @@ int main(int argc, char *argv[])
             BINARY_FILE_INFO *binaryinfo_ptr = (BINARY_FILE_INFO *)&frame->data;
             binaryinfo.crc32 = binaryinfo_ptr->crc32;
             binaryinfo.size = binaryinfo_ptr->size;
-            write_respond_to_Master(MY_ID, UART_RESPOND_ACK);
+            Write_Info_to_Master(MY_ID, UART_RESPOND_ACK);
             break;
         case UART_DATA_FRAME:
+            UART_RSPONSE resp = UART_RESPOND_ACK;
+            if (StoreDataIntoFile(&frame->data, frame->len) <= 0)
+                resp = UART_RESPOND_NACK;
+            Write_Info_to_Master(MY_ID, resp);
         default:
             break;
         }
@@ -71,24 +77,26 @@ int main(int argc, char *argv[])
 
 void processMasterCommand(uint8_t cmd_type)
 {
+    printf("command type:%02x\n", cmd_type);
 
     switch (cmd_type)
     {
     case UART_CMD_GET_BL_VERSION:
         uint8_t BL_version = encode_bootloader_version(BL_MAJOR_VERSION, BL_MINOR_VERSION);
-        write_respond_to_Master(MY_ID, BL_version); //
+        Write_Info_to_Master(MY_ID, BL_version);
+        printf("BL_version:%02x\n", BL_version);
         break;
     case UART_CMD_GET_APP_VERSION:
         //
         break;
     case UART_CMD_ENTER_BOOTLOADER:
-        write_respond_to_Master(MY_ID, UART_RESPOND_ACK); // I'm already in bootloader mode
+        Write_Info_to_Master(MY_ID, UART_RESPOND_ACK); // I'm already in bootloader mode
         break;
     case UART_CMD_CHECK_SPACE:
         UART_RSPONSE resp = UART_RESPOND_ACK;
         if (check_space_by_writing_temp_file((size_t)binaryinfo.size) <= 0)
             resp = UART_RESPOND_NACK;
-        write_respond_to_Master(MY_ID, resp);
+        Write_Info_to_Master(MY_ID, resp);
         break;
     default:
         break;

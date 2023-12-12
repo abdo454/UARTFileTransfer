@@ -8,7 +8,6 @@ static bool crc_tab32_init = false;
 static uint32_t crc_tab32[256];
 
 /*
- * uint32_t crc_32( const unsigned char *input_str, size_t num_bytes );
  *
  * The function crc_32() calculates in one pass the common 32 bit CRC value for
  * a byte string that is passed to the function together with a parameter
@@ -71,11 +70,12 @@ uint32_t update_crc_32_char(uint32_t crc, unsigned char c)
 	return crc & 0xffffffffL;
 }
 
-/* uint32_t update_crc_32_array(     uint32_t crc_, unsigned char *input_str , size_t num_bytes );
+/*
  * update  crc for a byte string that is passed to the function together with a parameter
  * indicating the length.
+ * if this is first call,=assign zero to crc_> crc_=0
  */
-uint32_t update_crc_32_array(uint32_t crc_, unsigned char *input_str, size_t num_bytes)
+uint32_t crc32_update(uint32_t crc_, unsigned char *input_str, size_t num_bytes)
 {
 
 	uint32_t crc;
@@ -87,7 +87,7 @@ uint32_t update_crc_32_array(uint32_t crc_, unsigned char *input_str, size_t num
 	if (!crc_tab32_init)
 		init_crc32_tab();
 	crc = crc_ ^ 0xffffffffL;
-	;
+
 	ptr = input_str;
 
 	if (ptr != NULL)

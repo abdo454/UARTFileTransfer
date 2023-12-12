@@ -3,7 +3,7 @@
  * @author abdo daood (abdo.daood94@gmail.com)
  * @brief
  * @version 0.1
- * @date 2023-12-11
+ * @date 2023-12-12
  *
  * @copyright Copyright (c) 2023
  *
@@ -20,13 +20,9 @@ extern "C"
 {
 #endif
 
-// #define RS_485_ENABLE
+    // #define RS_485_ENABLE
 
-#define MY_ID 0x01         // TOSET
-#define BL_MAJOR_VERSION 1 // Bootloader major version
-#define BL_MINOR_VERSION 0 // Bootloader minor version
-
-#define BINARY_FILE_PATH "/tmp/app_xx.bin"
+#define CHUNK_MAX_PLD_LENGTH_XXXX 512 // Send chunks by 512 bytes
 
 #ifdef __cplusplus
 }

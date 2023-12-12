@@ -33,7 +33,7 @@ extern "C"
 
     uint32_t crc_32(const unsigned char *input_str, size_t num_bytes);
     uint32_t update_crc_32_char(uint32_t crc, unsigned char c);
-    uint32_t update_crc_32_array(uint32_t crc, unsigned char *input_str, size_t num_bytes);
+    uint32_t crc32_update(uint32_t crc_, unsigned char *input_str, size_t num_bytes);
 #ifdef __cplusplus
 }
 #endif
