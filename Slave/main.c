@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     printf("-----------------------------------\n\n");
 
     /* 2. Set WatchDog timer */
-
+    /* .. */
     /* 3. Start While loop */
     LOG_INFO("Start Listening to Master Requests");
     while (!quitApp)
