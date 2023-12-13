@@ -16,8 +16,8 @@ This project enables the transfer of files between two devices, referred to as t
 ### Slave Application
 1. **Compilation**: Similar to the Master, compile by executing the Makefile in the Slave's directory. The output will be in the `bin` folder.
 2. **Execution**: Run the application with: `$ ./slave <UART_port> <UART_baudrate>`.
-   - **Example**: `./slave /dev/ttyUSB0 2000000`
-     - `/dev/ttyUSB0` denotes the Slave's serial port.
+   - **Example**: `./slave /dev/ttyUSB1 2000000`
+     - `/dev/ttyUSB1` denotes the Slave's serial port.
      - `2000000` is the baud rate for the Slave's serial port.
 
 ## Key Points
