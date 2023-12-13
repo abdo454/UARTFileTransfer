@@ -32,9 +32,23 @@ Version BL_Version = {
 
 int main(int argc, char *argv[])
 {
+    if (argc < 4)
+    {
+        printf("Usage: %s <filename> <UART_port> <UART_baudrate>\n", argv[0]);
+        return 1;
+    }
+    // argv[1] is the filename
+    const char *binaryfilename = argv[1];
+
+    // argv[2] is the UART port
+    const char *uart_port = argv[2];
+
+    // argv[3] is the UART baud rate
+    int uart_baudrate = atoi(argv[3]);
+
     log_set_level(INFO_LOG_LEVEL);
     /* 1. Open Serial Port */
-    int ret = (int)openDevice("/dev/ttyUSB1", 2000000);
+    int ret = (int)openDevice(uart_port, uart_baudrate);
     if (ret <= 0)
     {
         LOG_ERROR("failed to open serial port");
@@ -42,10 +56,11 @@ int main(int argc, char *argv[])
     }
 
     /* 2. Set WatchDog timer */
+    /* ... */
     /* 3. Open the binary file , calculate its CRC32 and length*/
 
     size_t size_ = 0;
-    char *file_contents = read_binary_file("temp.bin", &size_);
+    char *file_contents = read_binary_file(binaryfilename, &size_);
     if (!file_contents)
     {
         LOG_ERROR("Error reading binary file");
@@ -53,8 +68,13 @@ int main(int argc, char *argv[])
     }
     binaryinfo.size = size_;
     binaryinfo.crc32 = crc_32((uint8_t *)file_contents, size_);
-    sprintf(msg_buf, "file parms: crc32:%08X , size : %dB\n", binaryinfo.crc32, binaryinfo.size);
-    LOG_INFO(msg_buf);
+    printf("-----------------------------------");
+    printf("File : \"%s\"\n", binaryfilename);
+    printf("UART port: %s\n", uart_port);
+    printf("UART Baudrate: %d bps\n", uart_baudrate);
+    printf("Transmiting speed: %d Byte per Chunk\n", decode_chunk_payload_max_size(encode_chunk_payload_max_size(CHUNK_MAX_PLD_LENGTH_XXXX)));
+    printf("File parms: crc32:%08X , size : %dB\n", binaryinfo.crc32, binaryinfo.size);
+    printf("-----------------------------------\n\n");
 
     /* 4. Start While loop */
     static uint8_t updateState = 0;
@@ -63,8 +83,6 @@ int main(int argc, char *argv[])
     UARTChunk tempUARTChunk;
     while (!quitApp)
     {
-        sprintf(msg_buf, "updateState %d", updateState);
-        LOG_INFO(msg_buf);
         switch (updateState)
         {
         case 0: // ask slave to enter bootloader App
@@ -96,7 +114,6 @@ int main(int argc, char *argv[])
             else
                 updateState = 10; // Unavailable space enough for the binary file !!!
             break;
-
         case 3: // send file as chunks
             tempUARTChunk.ChLen = encode_chunk_payload_max_size(CHUNK_MAX_PLD_LENGTH_XXXX);
             uint16_t chunk_length = decode_chunk_payload_max_size(tempUARTChunk.ChLen);
@@ -111,9 +128,10 @@ int main(int argc, char *argv[])
                 break;
             if (Uart_Buf->data != UART_RESPOND_ACK)
                 break;
+            sprintf(msg_buf, "Send Chunk[%d]", tempUARTChunk.ChunkIdx);
             tempUARTChunk.ChunkIdx++;
             bytes_sent += chunk_size;
-            printf("IDX %d , chunk_size %d ,bytes_sent %d\n", tempUARTChunk.ChunkIdx, chunk_size, bytes_sent);
+            LOG_INFO(msg_buf);
             if (bytes_sent >= binaryinfo.size)
                 updateState = 4;
             break;
@@ -124,19 +142,16 @@ int main(int argc, char *argv[])
             if (Uart_Buf->data == UART_RESPOND_ACK)
                 updateState = 5;
             break;
-        case 5: // ask slave to Write application to flash memory
-            Write_Command_to_Slave(Slave_ID, UART_CMD_FLASH_APP);
-            if (tryGetResquestFromSlave(Slave_ID) <= 0)
-                break;
-            if (Uart_Buf->data == UART_RESPOND_ACK)
-                updateState = 6;
+        case 5: // Ask Slave to end & exit from Bootloader App
+            Write_Command_to_Slave(Slave_ID, UART_CMD_END_SESSION);
+            /*here, There is no point in waiting for a response from the Slave;
+             his response may be subject to noise.*/
+            updateState = 6;
             break;
         case 6: // ask slave to END the Session
-            Write_Command_to_Slave(Slave_ID, UART_CMD_END_SESSION);
-            updateState = 7;
-            break;
-        case 7: // ask slave to END the Session
-            LOG_INFO("File Updated Successfully\n")
+            LOG_INFO("File updated successfully.");
+            LOG_INFO("You can safely reboot the slave device.");
+
             goto end_while_loop;
             break;
         case 10: // Slave device msg: :Unavilable enough space for binary file
@@ -148,7 +163,7 @@ int main(int argc, char *argv[])
         default:
             break;
         }
-        usleep(100 * 1000); // 100msec sleep for some reason
+        usleep(50 * 1000); // 100msec sleep for some reason
     }
 end_while_loop:
     free(file_contents);
