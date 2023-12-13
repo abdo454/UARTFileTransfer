@@ -22,7 +22,7 @@ extern "C"
 
     // #define RS_485_ENABLE
 
-#define CHUNK_MAX_PLD_LENGTH_XXXX 512 // Send chunks by 512 bytes
+#define CHUNK_MAX_PLD_LENGTH_XXXX 10 // {128 , 256 , 512 , 1024} Send chunks by 1024 bytes
 
 #ifdef __cplusplus
 }

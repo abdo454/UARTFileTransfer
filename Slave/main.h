@@ -26,7 +26,7 @@ extern "C"
 #define BL_MAJOR_VERSION 1 // Bootloader major version
 #define BL_MINOR_VERSION 0 // Bootloader minor version
 
-#define BINARY_FILE_PATH "/tmp/app_xx.bin"
+#define BINARY_FILE_PATH "./app_xx.bin"
 
 #ifdef __cplusplus
 }

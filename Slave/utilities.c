@@ -17,6 +17,14 @@
 extern BINARY_FILE_INFO binaryinfo;
 FILE *BinFile = NULL;
 
+void close_binary_file()
+{
+    if (!BinFile)
+        return;
+    fclose(BinFile);
+    BinFile = NULL;
+    return;
+}
 int check_space_by_writing_temp_file(size_t requiredSize)
 {
     if (BinFile == NULL)
@@ -53,7 +61,9 @@ int check_space_by_writing_temp_file(size_t requiredSize)
         }
         writtenSize += toWrite;
     }
-
+    /* Note:
+    keep the file open, as we will write to it in the next swicth case
+     */
     // fclose(BinFile);
     // remove(TEMP_FILE_PATH); // Clean up
 
@@ -135,7 +145,7 @@ uint32_t decode_chunk_payload_max_size(uint8_t ChLen)
         ChunkStepConstant = 1024;
         break;
     default:
-        ChunkStepConstant = 256;
+        ChunkStepConstant = 512;
         break;
     }
     return ChunkStepConstant;
@@ -159,7 +169,7 @@ uint8_t encode_chunk_payload_max_size(uint32_t PLD_LENGTH_XXXX)
         ChLen = CHUNK_MAX_PLD_LENGTH_1024B;
         break;
     default:
-        ChLen = CHUNK_MAX_PLD_LENGTH_256B;
+        ChLen = CHUNK_MAX_PLD_LENGTH_512B;
         break;
     }
     return ChLen;

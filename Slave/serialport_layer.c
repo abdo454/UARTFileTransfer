@@ -60,7 +60,7 @@ static int write_Bytes_Salve_Master(uint8_t ID, uint8_t type, uint8_t *data, uin
     temp_len += sizeof(frame.sof_low) + sizeof(frame.sof_high);
     writeBytes((uint8_t *)&frame, temp_len);
     writeBytes((uint8_t *)data, length);
-    writeBytes((uint8_t *)&frame.crc, sizeof(frame.crc));
+    writeBytes((uint8_t *)&frame.crc, sizeof(frame.crc) + sizeof(frame.eof));
     usleep(750);
     tcdrain(serial_fd);
 

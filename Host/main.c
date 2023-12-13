@@ -63,29 +63,44 @@ int main(int argc, char *argv[])
     UARTChunk tempUARTChunk;
     while (!quitApp)
     {
-        printf("updateState %d\n", updateState);
+        sprintf(msg_buf, "updateState %d", updateState);
+        LOG_INFO(msg_buf);
         switch (updateState)
         {
         case 0: // ask slave to enter bootloader App
             Write_Command_to_Slave(Slave_ID, UART_CMD_ENTER_BOOTLOADER);
             if (tryGetResquestFromSlave(Slave_ID) <= 0)
                 break;
-            LOG_INFO("get response from Slave\n");
             if (Uart_Buf->data == UART_RESPOND_ACK)
                 updateState = 1;
+            LOG_INFO("Slave in Bootloader Mode");
             break;
+            uint16_t bytes_sent = 0;
         case 1: // send file info(size and crc32)
             Write_Info_to_Slave(Slave_ID, UART_HEADER_FRAME, (uint8_t *)&binaryinfo, sizeof(binaryinfo));
             if (tryGetResquestFromSlave(Slave_ID) <= 0)
                 break;
             if (Uart_Buf->data == UART_RESPOND_ACK)
                 updateState = 2;
+            sprintf(msg_buf, "Send file info: size %d , crc32 %08X", binaryinfo.size, binaryinfo.crc32);
+            LOG_INFO(msg_buf);
             break;
-        case 2: // send file as chunks
-            tempUARTChunk.ChLen = encode_chunk_payload_max_size(CHUNK_MAX_PLD_LENGTH_XXXX);
+        case 2: // Ask Slave to check space availabilty
+            Write_Command_to_Slave(Slave_ID, UART_CMD_CHECK_SPACE);
+            if (tryGetResquestFromSlave(Slave_ID) <= 0)
+                break;
             tempUARTChunk.ChunkIdx = 0;
-            uint16_t bytes_sent = 0;
-            uint16_t chunk_size = (bytes_sent + CHUNK_MAX_PLD_LENGTH_XXXX <= binaryinfo.size) ? CHUNK_MAX_PLD_LENGTH_XXXX : (binaryinfo.size - bytes_sent);
+            bytes_sent = 0;
+            if (Uart_Buf->data == UART_RESPOND_ACK)
+                updateState = 3;
+            else
+                updateState = 10; // Unavailable space enough for the binary file !!!
+            break;
+
+        case 3: // send file as chunks
+            tempUARTChunk.ChLen = encode_chunk_payload_max_size(CHUNK_MAX_PLD_LENGTH_XXXX);
+            uint16_t chunk_length = decode_chunk_payload_max_size(tempUARTChunk.ChLen);
+            uint16_t chunk_size = (bytes_sent + chunk_length <= binaryinfo.size) ? chunk_length : (binaryinfo.size - bytes_sent);
             if (chunk_size > sizeof(tempUARTChunk.ChunkPayload))
                 LOG_ERROR("Buffer Overflow : Check your Code !!\n");
             memcpy(tempUARTChunk.ChunkPayload, file_contents + bytes_sent, chunk_size);
@@ -98,35 +113,42 @@ int main(int argc, char *argv[])
                 break;
             tempUARTChunk.ChunkIdx++;
             bytes_sent += chunk_size;
+            printf("IDX %d , chunk_size %d ,bytes_sent %d\n", tempUARTChunk.ChunkIdx, chunk_size, bytes_sent);
             if (bytes_sent >= binaryinfo.size)
-                updateState = 3;
-            break;
-        case 3: // ask slave to check CRC32 , File size , File ELF Header
-            Write_Command_to_Slave(Slave_ID, UART_CMD_VERIFY_FILE_PARAMS);
-            if (tryGetResquestFromSlave(Slave_ID) <= 0)
-                break;
-            if (Uart_Buf->data == UART_RESPOND_ACK)
                 updateState = 4;
             break;
-        case 4: // ask slave to Write application to flash memory
-            Write_Command_to_Slave(Slave_ID, UART_CMD_FLASH_APP);
+        case 4: // ask slave to check CRC32 , File size , File ELF Header
+            Write_Command_to_Slave(Slave_ID, UART_CMD_VERIFY_FILE_PARAMS);
             if (tryGetResquestFromSlave(Slave_ID) <= 0)
                 break;
             if (Uart_Buf->data == UART_RESPOND_ACK)
                 updateState = 5;
             break;
-        case 5: // ask slave to END the Session
-            Write_Command_to_Slave(Slave_ID, UART_CMD_END_SESSION);
-            updateState = 6;
+        case 5: // ask slave to Write application to flash memory
+            Write_Command_to_Slave(Slave_ID, UART_CMD_FLASH_APP);
+            if (tryGetResquestFromSlave(Slave_ID) <= 0)
+                break;
+            if (Uart_Buf->data == UART_RESPOND_ACK)
+                updateState = 6;
             break;
         case 6: // ask slave to END the Session
+            Write_Command_to_Slave(Slave_ID, UART_CMD_END_SESSION);
+            updateState = 7;
+            break;
+        case 7: // ask slave to END the Session
             LOG_INFO("File Updated Successfully\n")
+            goto end_while_loop;
+            break;
+        case 10: // Slave device msg: :Unavilable enough space for binary file
+            LOG_ERROR("Unavilable enough space for binary file !!!");
+            // TODO process this case
+            // ...
             goto end_while_loop;
             break;
         default:
             break;
         }
-        usleep(1000 * 1000); // 100msec sleep for some reason
+        usleep(100 * 1000); // 100msec sleep for some reason
     }
 end_while_loop:
     free(file_contents);

@@ -64,6 +64,9 @@ extern "C"
 
     // function that reads a binary file and stores its contents in a buffer
     char *read_binary_file(const char *filename, size_t *size);
+
+    // Close Binary File
+    void close_binary_file();
 #ifdef __cplusplus
 }
 #endif

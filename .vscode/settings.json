@@ -10,6 +10,7 @@
         "main.h": "c",
         "stdint.h": "c",
         "stdbool.h": "c",
-        "checksum.h": "c"
+        "checksum.h": "c",
+        "stdlib.h": "c"
     }
 }
