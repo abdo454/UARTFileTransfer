@@ -2,7 +2,7 @@
 CC := gcc
 
 # Application name
-APP := master_app
+APP := master
 
 # Flags
 CFLAGS := -Wall -g -MMD  # Add -MMD to generate dependency files
