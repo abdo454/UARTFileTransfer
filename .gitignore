@@ -1,6 +1,8 @@
 # Compiled Object files
 Slave/bin/*
 Slave/obj/*
+Host/bin/*
+Host/obj/*
 *.slo
 *.lo
 *.o
