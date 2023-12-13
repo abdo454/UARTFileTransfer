@@ -52,6 +52,7 @@ extern "C"
     int check_space_by_writing_temp_file(size_t requiredSize);
 
     void processMasterCommand(uint8_t cmd_type);
+    
     uint8_t encode_bootloader_version(uint8_t major, uint8_t minor);
     // Funcation takes a pointer to start of chunk in frame and chunk length
     int StoreDataIntoFile(uint8_t *ChunkStartPtr, uint16_t ChunkLength);
