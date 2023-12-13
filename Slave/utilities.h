@@ -44,7 +44,6 @@ extern "C"
         UART_CMD_ENTER_BOOTLOADER,   // Enter bootloader mode
         UART_CMD_CHECK_SPACE,        // Check available space
         UART_CMD_VERIFY_FILE_PARAMS, // Verify file parameters (signature, CRC, size, MD5, type)
-        UART_CMD_FLASH_APP,          // Write application to flash memory
         UART_CMD_END_SESSION,        // Close the session
     } COMMAND_CASES;
 
