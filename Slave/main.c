@@ -30,15 +30,30 @@ Version BL_Version = {
     .minor = BL_MINOR_VERSION};
 
 char msg_buf[1024];
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc < 3)
+    {
+        printf("Usage: %s <UART_port> <UART_baudrate>\n", argv[0]);
+        return 1;
+    }
+
+    // argv[1] is the UART port
+    const char *uart_port = argv[1];
+
+    // argv[2] is the UART baud rate
+    int uart_baudrate = atoi(argv[2]);
     /* 1. Open Serial Port */
-    int ret = (int)openDevice("/dev/ttyUSB0", 2000000);
+    int ret = (int)openDevice(uart_port, uart_baudrate);
     if (ret <= 0)
     {
         LOG_ERROR("faild open serial port");
         return EXIT_FAILURE;
     }
+    printf("-----------------------------------\n");
+    printf("UART port: %s\n", uart_port);
+    printf("UART Baudrate: %d bps\n", uart_baudrate);
+    printf("-----------------------------------\n\n");
 
     /* 2. Set WatchDog timer */
 
@@ -78,6 +93,7 @@ int main()
             break;
         }
     }
+    LOG_INFO("--------------App Finished--------------")
     return EXIT_SUCCESS;
 }
 
@@ -128,11 +144,12 @@ void processMasterCommand(uint8_t cmd_type)
         sprintf(msg_buf, "CMD_VERIFY_FILE_PARAMS : %s", (resp == UART_RESPOND_ACK ? "ACK" : "NACK"));
         LOG_INFO(msg_buf);
         Write_Info_to_Master(MY_ID, resp);
-
         free(temp_file_contents);
         break;
+    case UART_CMD_END_SESSION:
+        quitApp = true;
+        break;
     default:
-        printf(" CMD defualt \n");
         break;
     }
 }
