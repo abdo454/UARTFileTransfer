@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
     }
     binaryinfo.size = size_;
     binaryinfo.crc32 = crc_32((uint8_t *)file_contents, size_);
-    printf("-----------------------------------");
+    printf("-----------------------------------\n");
     printf("File : \"%s\"\n", binaryfilename);
     printf("UART port: %s\n", uart_port);
     printf("UART Baudrate: %d bps\n", uart_baudrate);
