@@ -5,7 +5,7 @@ CC := gcc
 APP := master_app
 
 # Flags
-CFLAGS := -Wall -g
+CFLAGS := -Wall -g -MMD  # Add -MMD to generate dependency files
 LDFLAGS :=
 
 # Directories
@@ -18,7 +18,7 @@ BIN_DIR := ./bin
 SRCS := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SLAVE_DIR)/*.c)
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(wildcard $(SRC_DIR)/*.c)) \
         $(patsubst $(SLAVE_DIR)/%.c,$(OBJ_DIR)/%.o,$(wildcard $(SLAVE_DIR)/*.c))
-
+DEPS := $(OBJS:.o=.d)  # Add this line for dependencies
 # Include paths
 INCLUDES := -I$(SRC_DIR) -I$(SLAVE_DIR)
 
@@ -39,9 +39,11 @@ $(OBJ_DIR)/%.o: $(SLAVE_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+-include $(DEPS)  # Include the dependency files
+
 # Clean up
 clean:
-	@rm -rf $(BIN_DIR) $(OBJ_DIR)
+	@rm -rf $(BIN_DIR) $(OBJ_DIR) $(DEPS)
 
 # Phony targets
 .PHONY: all clean
