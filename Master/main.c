@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
                 updateState = 1;
             LOG_INFO("Slave in Bootloader Mode");
             break;
-            uint16_t bytes_sent = 0;
+            uint32_t bytes_sent = 0;
         case 1: // send file info(size and crc32)
             Write_Info_to_Slave(Slave_ID, UART_HEADER_FRAME, (uint8_t *)&binaryinfo, sizeof(binaryinfo));
             if (tryGetResquestFromSlave(Slave_ID) <= 0)
@@ -141,6 +141,11 @@ int main(int argc, char *argv[])
                 break;
             if (Uart_Buf->data == UART_RESPOND_ACK)
                 updateState = 5;
+            else
+            {
+                LOG_INFO("Faild File updated , unmatched CRC32 and Length");
+                goto end_while_loop;
+            }
             break;
         case 5: // Ask Slave to end & exit from Bootloader App
             Write_Command_to_Slave(Slave_ID, UART_CMD_END_SESSION);

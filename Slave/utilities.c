@@ -123,7 +123,7 @@ int StoreDataIntoFile(uint8_t *ChunkStartPtr, uint16_t ChunkLength)
     uint16_t ChunkPayloadLength = ChunkLength - sizeof(UARTChunkPtr->ChLen) - sizeof(UARTChunkPtr->ChunkIdx);
     uint32_t ChunkStepConstant = decode_chunk_payload_max_size(UARTChunkPtr->ChLen);
 
-    uint16_t offsetAddress = offsetIdx * ChunkStepConstant;
+    size_t offsetAddress = offsetIdx * ChunkStepConstant;
     return write_file_with_offset(BinFile, UARTChunkPtr->ChunkPayload, ChunkPayloadLength, offsetAddress);
 }
 uint32_t decode_chunk_payload_max_size(uint8_t ChLen)
